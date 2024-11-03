@@ -67,7 +67,7 @@ const Map = ({ latitude = 30.286, longitude = -97.7394, zoom = 14, coordinates =
           .join("<br>");
           
         const popupContent = `
-          <div>
+          <div style="color: black;">
             <strong>${markerName}</strong><br>
             <div><strong>Teams:</strong><br>${teamScoresHTML}</div>
             <div style="margin-top: 8px;"><strong>Users:</strong><br>${userScoresHTML}</div>

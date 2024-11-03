@@ -4,7 +4,6 @@ import MapComponent from "./components/map";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, { useEffect, useRef, useState } from 'react';
 import mqtt, { MqttClient, IClientOptions } from 'mqtt';
-import TimeDisplay from "./intToDate";
 
 const mqttUri = "wss://ut.playtakeover.tech"; // Replace with actual MQTT URI
 const options: IClientOptions = {}; // Define any MQTT options here
@@ -65,7 +64,7 @@ export default function Home() {
            // if (Array.isArray(data) && data.length === 2 &&
             //    typeof data[0] === 'number' && typeof data[1] === 'number') {
               //const [red, blue] = data;
-              setScoreMap(_ => data);
+              setScoreMap(() => data);
           //  }
           } catch (error) {
             console.error("Error parsing coordinate data:", error, "Raw message:", message.toString());
@@ -206,6 +205,8 @@ export default function Home() {
     setCapturedImage(null); // Clear captured image when closing the camera
   };
 
+
+
   const takePhoto = () => {
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
@@ -323,11 +324,7 @@ export default function Home() {
 
         {showModal && (
           <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             display: 'flex',
             justifyContent: 'center',
@@ -336,35 +333,19 @@ export default function Home() {
           }}>
             <div style={{
               background: 'linear-gradient(90deg, #BF5700, #FF6B00)', // Burnt orange gradient
-              color: 'white',
-              padding: '20px',
-              borderRadius: '8px',
-              width: '90%',
-              maxWidth: '500px',
-              textAlign: 'center',
-              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)',
-            }}>
+              color: 'white', padding: '20px',borderRadius: '8px', width: '90%',maxWidth: '500px',textAlign: 'center',
+              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)'}}>
               <h2 style={{
-                fontSize: '1.8em',
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                textShadow: '2px 2px 6px rgba(0, 0, 0, 0.3)',
-                marginBottom: '20px',
+                fontSize: '1.8em', fontWeight: 'bold', textTransform: 'uppercase',letterSpacing: '0.05em',
+                textShadow: '2px 2px 6px rgba(0, 0, 0, 0.3)', marginBottom: '20px',
               }}>Camera</h2>
               <video ref={videoRef} autoPlay style={{ width: '100%', maxHeight: '400px', borderRadius: '8px' }} />
               <button onClick={takePhoto} style={{
                 marginTop: '20px',
-                padding: '10px 20px',
-                fontSize: '1.2em',
-                borderRadius: '8px',
-                border: 'none',
-                color: 'white',
-                background: 'linear-gradient(90deg, #BF5700, #FF6B00)',
-                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                padding: '10px 20px', fontSize: '1.2em', borderRadius: '8px', border: 'none',
+                color: 'white', background: 'linear-gradient(90deg, #BF5700, #FF6B00)',
+                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)', cursor: 'pointer',
+                fontWeight: 'bold', transition: 'transform 0.2s ease, box-shadow 0.2s ease',
               }}
               onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -380,19 +361,27 @@ export default function Home() {
               {/* Dropdown for Team Members populated with users from building 32 */}
               <div style={{ marginTop: '20px' }}>
                 <label htmlFor="teamMember" style={{ display: 'block', marginBottom: '8px', color: 'white' }}>Select Team Member:</label>
-                <select id="teamMember" style={{
-                  padding: '10px',
-                  fontSize: '1em',
-                  width: '100%',
-                  maxWidth: '400px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  backgroundColor: 'white', // White background
-                  color: 'black', // Black text
-                  appearance: 'none',
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Light shadow for depth
+                <select id="teamMember" style={{padding: '10px',fontSize: '1em',width: '100%',
+                  maxWidth: '400px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: 'white', // White background
+                  color: 'black', appearance: 'none', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Light shadow for depth
                 }}>
                   <option value="">Choose a member</option>
+                  {Array.from(namesMap.entries()).map(([key, value], index) => (
+                    <option key={index} value={key}>
+                      {value || 'Unnamed'} {/* Display value or 'Unnamed' if null */}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginTop: '20px' }}>
+                <label htmlFor="building" style={{ display: 'block', marginBottom: '8px', color: 'white' }}>Select Team Member:</label>
+                <select id="building" style={{padding: '10px',fontSize: '1em',width: '100%',
+                  maxWidth: '400px', borderRadius: '4px', border: '1px solid #ccc',
+                  backgroundColor: 'white', color: 'black', // Black text
+                  appearance: 'none', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Light shadow for depth
+                }}>
+                  <option value="">Choose a building</option>
                   {building32Users.map((user, index) => (
                     <option key={index} value={user}>{user}</option>
                   ))}
@@ -405,15 +394,9 @@ export default function Home() {
                 <button onClick={() => {
                   closeCamera(); // Close the modal after the alert
                 }} style={{
-                  padding: '10px 20px',
-                  fontSize: '1.2em',
-                  background: 'linear-gradient(90deg, #BF5700, #FF6B00)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
+                  padding: '10px 20px', fontSize: '1.2em',background: 'linear-gradient(90deg, #BF5700, #FF6B00)',
+                  color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer',
+                  fontWeight: 'bold',boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -422,16 +405,9 @@ export default function Home() {
                   Submit
                 </button>
                 <button onClick={closeCamera} style={{
-                  padding: '10px 20px',
-                  fontSize: '1.2em',
-                  background: 'linear-gradient(90deg, #BF5700, #FF6B00)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  padding: '10px 20px', fontSize: '1.2em', background: 'linear-gradient(90deg, #BF5700, #FF6B00)',color: 'white',
+                  border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)', transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                 onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
