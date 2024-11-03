@@ -55,7 +55,7 @@ const Map = ({ latitude = 30.286, longitude = -97.7394, zoom = 14, coordinates =
         const markerName = names[index] || "Unnamed Location";
         const teamScores = teams[index] || {};
         const userScores = users[index] || {};
-
+// console.log('color change', ma);
         // Format team and user scores into HTML
         const teamScoresHTML = Object.entries(teamScores)
           .map(([team, score]) => `<strong>${team}</strong>: ${score}`)
@@ -75,8 +75,24 @@ const Map = ({ latitude = 30.286, longitude = -97.7394, zoom = 14, coordinates =
         `;
 
         if (markersRef.current[markerKey]) {
-          // If marker exists, update its popup content
-          markersRef.current[markerKey].getPopup().setHTML(popupContent);
+          // If marker exists, check if color has changed
+          if (markersRef.current[markerKey].getElement().style.backgroundColor !== markerColor) {
+            // Remove the existing marker
+            markersRef.current[markerKey].remove();
+            
+            // Create a new marker with the updated color and popup content
+            const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
+            const marker = new mapboxgl.Marker({ color: markerColor })
+              .setLngLat([coord[1], coord[0]])
+              .setPopup(popup)
+              .addTo(map.current);
+            
+            // Update the reference
+            markersRef.current[markerKey] = marker;
+          } else {
+            // If color is the same, just update the popup content
+            markersRef.current[markerKey].getPopup().setHTML(popupContent);
+          }
         } else {
           // Create a new marker and popup
           const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
@@ -84,9 +100,11 @@ const Map = ({ latitude = 30.286, longitude = -97.7394, zoom = 14, coordinates =
             .setLngLat([coord[1], coord[0]])
             .setPopup(popup)
             .addTo(map.current);
-
-          markersRef.current[markerKey] = marker; // Store the marker in the ref
+          
+          // Store marker reference
+          markersRef.current[markerKey] = marker;
         }
+        
       } else {
         console.warn("Invalid coordinate detected and skipped:", coord);
       }

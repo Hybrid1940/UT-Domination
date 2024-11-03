@@ -178,6 +178,7 @@ export default function Home() {
   for (const [buildingId, coord] of coordinatesMap.entries()) {
     if (coord.lat >= -90 && coord.lat <= 90 && coord.lng >= -180 && coord.lng <= 180) {
       coordinates.push([coord.lat, coord.lng]);
+    
       colors.push(colorsMap.has(buildingId) ? rgbToHex(colorsMap.get(buildingId)!) : '#000000');
       names.push(namesMap.get(buildingId) || null);
       teams.push(teamsMap.get(buildingId) || {});
