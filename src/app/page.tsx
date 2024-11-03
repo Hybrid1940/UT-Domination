@@ -24,12 +24,17 @@ interface Teams {
   [key: string]: number;
 }
 
+interface Users {
+  [key: string]: number;
+}
+
 export default function Home() {
   const clientRef = useRef<MqttClient | null>(null);
   const [coordinatesMap, setCoordinatesMap] = useState(new Map<string, Coordinate>());
   const [colorsMap, setColorsMap] = useState(new Map<string, Color>());
   const [namesMap, setNamesMap] = useState(new Map<string, string | null>());
   const [teamsMap, setTeamsMap] = useState(new Map<string, Teams>());
+  const [usersMap, setUsersMap] = useState(new Map<string, Users>()); // New map for users
   const [showModal, setShowModal] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -111,6 +116,26 @@ export default function Home() {
           } catch (error) {
             console.error("Error parsing teams data:", error, "Raw message:", message.toString());
           }
+        } else if (topic.endsWith('/users')) {
+          try {
+            const data = JSON.parse(message.toString());
+            if (typeof data === 'object' && data !== null) {
+              const isValidUsersData = Object.values(data).every(value => typeof value === 'number');
+              if (isValidUsersData) {
+                setUsersMap(prevMap => {
+                  const newMap = new Map(prevMap);
+                  newMap.set(buildingId, data); // Store users data in usersMap
+                  return newMap;
+                });
+              } else {
+                console.warn("Invalid user scores format:", data);
+              }
+            } else {
+              console.warn("Users data is not an object:", data);
+            }
+          } catch (error) {
+            console.error("Error parsing users data:", error, "Raw message:", message.toString());
+          }
         }
       });
     }
@@ -135,6 +160,7 @@ export default function Home() {
   const colors = [];
   const names = [];
   const teams = [];
+  const users = []; // Array to hold users data for each building
 
   for (const [buildingId, coord] of coordinatesMap.entries()) {
     if (coord.lat >= -90 && coord.lat <= 90 && coord.lng >= -180 && coord.lng <= 180) {
@@ -142,6 +168,7 @@ export default function Home() {
       colors.push(colorsMap.has(buildingId) ? rgbToHex(colorsMap.get(buildingId)!) : '#000000');
       names.push(namesMap.get(buildingId) || null);
       teams.push(teamsMap.get(buildingId) || {});
+      users.push(usersMap.get(buildingId) || {}); // Add users data to the array
     } else {
       console.warn(`Invalid coordinate range for building ${buildingId}:`, coord);
     }
@@ -176,15 +203,109 @@ export default function Home() {
     }
   };
 
+  // Extract usernames for building 32 if available
+  const building32Users = usersMap.get("32") ? Object.keys(usersMap.get("32")) : [];
+
   return (
     <div>
       <main>
-        <h1>UT Domination</h1>
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '10px',
+          padding: '20px',
+          color: 'white',
+          background: 'linear-gradient(90deg, #BF5700, #FF6B00)', // Burnt orange gradient
+          borderRadius: '8px',
+          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)',
+        }}>
+          <h1 style={{
+            fontSize: '3em',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            textShadow: '2px 2px 8px rgba(0, 0, 0, 0.5)',
+            fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+          }}>
+            TakeOver UT
+          </h1>
+        </div>
+        <MapComponent latitude={30.286} longitude={-97.7394} zoom={5} coordinates={coordinates} color={colors} names={names} teams={teams} users={users} />
+        <div style={{ textAlign: 'center' }}>
+          <button onClick={showModal ? closeCamera : openCamera} style={{
+            marginTop: '20px',
+            padding: '12px 20px',
+            fontSize: '1.2em',
+            borderRadius: '8px',
+            border: 'none',
+            color: 'white',
+            background: 'linear-gradient(90deg, #BF5700, #FF6B00)', // Burnt orange gradient
+            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            {showModal ? "Close Camera" : "Open Camera"}
+          </button>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{
+            width: '45%',
+            marginRight: '40px',
+            padding: '20px',
+            color: 'white',
+            background: '#0000ff', // Burnt orange gradient
+            textAlign: 'center',
+            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)',
+            borderRadius: '8px',
+            marginTop: '20px',
+          }}>
+            <h2 style={{
+              fontSize: '2em',
+              fontWeight: 'bold',
+              margin: '0',
+            }}>
+              Team 1 - Score: 150
+            </h2>
+            <p style={{
+              fontSize: '1.25em',
+              margin: '0',
+              opacity: '0.95',
+            }}>
+              Member 1: 80 points<br />
+              Member 2: 70 points
+            </p>
+          </div>
+          <div style={{
+            width: '45%',
+            padding: '20px',
+            color: 'white',
+            background: '#ff0000', // Burnt orange gradient
+            textAlign: 'center',
+            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)',
+            borderRadius: '8px',
+            marginTop: '20px',
+          }}>
+            <h2 style={{
+              fontSize: '2em',
+              fontWeight: 'bold',
+              margin: '0',
+            }}>
+              Team 1 - Score: 150
+            </h2>
+            <p style={{
+              fontSize: '1.25em',
+              margin: '0',
+              opacity: '0.95',
+            }}>
+              Member 1: 80 points<br />
+              Member 2: 70 points
+            </p>
+          </div>
 
-        <MapComponent latitude={30.286} longitude={-97.7394} zoom={5} coordinates={coordinates} color={colors} names={names} teams={teams} />
-        <button onClick={showModal ? closeCamera : openCamera} style={{ marginTop: '20px', padding: '10px', fontSize: '1.2em' }}>
-          {showModal ? "Close Camera" : "Open Camera"}
-        </button>
+        </div>
 
         {showModal && (
           <div style={{
@@ -200,27 +321,51 @@ export default function Home() {
             zIndex: 1000
           }}>
             <div style={{
-              backgroundColor: 'white',
+              background: 'linear-gradient(90deg, #BF5700, #FF6B00)', // Burnt orange gradient
+              color: 'white',
               padding: '20px',
               borderRadius: '8px',
               width: '90%',
               maxWidth: '500px',
-              textAlign: 'center'
+              textAlign: 'center',
+              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)',
             }}>
-              <h2>Camera</h2>
-              <video ref={videoRef} autoPlay style={{ width: '100%', maxHeight: '400px' }} />
-              <button onClick={takePhoto} style={{ marginTop: '10px', padding: '10px', fontSize: '1.2em' }}>Take Photo</button>
+              <h2 style={{
+                fontSize: '1.8em',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                textShadow: '2px 2px 6px rgba(0, 0, 0, 0.3)',
+                marginBottom: '20px',
+              }}>Camera</h2>
+              <video ref={videoRef} autoPlay style={{ width: '100%', maxHeight: '400px', borderRadius: '8px' }} />
+              <button onClick={takePhoto} style={{
+                marginTop: '20px',
+                padding: '10px 20px',
+                fontSize: '1.2em',
+                borderRadius: '8px',
+                border: 'none',
+                color: 'white',
+                background: 'linear-gradient(90deg, #BF5700, #FF6B00)',
+                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >Take Photo</button>
 
               <canvas ref={canvasRef} style={{ display: 'none' }} width="640" height="480"></canvas>
               {capturedImage && (
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-                  <img src={capturedImage} alt="Captured" style={{ width: '50%', maxHeight: '200px', objectFit: 'contain' }} />
+                  <img src={capturedImage} alt="Captured" style={{ width: '50%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px' }} />
                 </div>
               )}
 
-              {/* Dropdown for Team Members */}
+              {/* Dropdown for Team Members populated with users from building 32 */}
               <div style={{ marginTop: '20px' }}>
-                <label htmlFor="teamMember" style={{ display: 'block', marginBottom: '8px' }}>Select Team Member:</label>
+                <label htmlFor="teamMember" style={{ display: 'block', marginBottom: '8px', color: 'white' }}>Select Team Member:</label>
                 <select id="teamMember" style={{
                   padding: '10px',
                   fontSize: '1em',
@@ -228,43 +373,55 @@ export default function Home() {
                   maxWidth: '400px',
                   borderRadius: '4px',
                   border: '1px solid #ccc',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  appearance: 'none'
+                  backgroundColor: 'white', // White background
+                  color: 'black', // Black text
+                  appearance: 'none',
+                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Light shadow for depth
                 }}>
                   <option value="">Choose a member</option>
-                  <option value="member1">Team Member 1</option>
-                  <option value="member2">Team Member 2</option>
-                  <option value="member3">Team Member 3</option>
-                  {/* Add more team members as needed */}
+                  {building32Users.map((user, index) => (
+                    <option key={index} value={user}>{user}</option>
+                  ))}
                 </select>
               </div>
+
 
               {/* Submission and Close Buttons */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
                 <button onClick={() => {
-                  alert("Submission successful!");
                   closeCamera(); // Close the modal after the alert
                 }} style={{
-                  padding: '10px',
+                  padding: '10px 20px',
                   fontSize: '1.2em',
-                  backgroundColor: '#007bff',
+                  background: 'linear-gradient(90deg, #BF5700, #FF6B00)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}>
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
                   Submit
                 </button>
                 <button onClick={closeCamera} style={{
-                  padding: '10px',
+                  padding: '10px 20px',
                   fontSize: '1.2em',
-                  backgroundColor: '#007bff',
+                  background: 'linear-gradient(90deg, #BF5700, #FF6B00)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}>
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
                   Close
                 </button>
               </div>
@@ -273,33 +430,15 @@ export default function Home() {
         )}
 
 
-
-
-        <details style={{ width: '100%', textAlign: 'center', backgroundColor: 'blue', color: 'white', padding: '10px', marginTop: '10px' }}>
-          <summary style={{ cursor: 'pointer', fontSize: '1.5em' }}>Team 1</summary>
-          <ul style={{ listStyleType: 'none', padding: 0, margin: '10px 0' }}>
-            <li>Member 1</li>
-            <li>Member 2</li>
-            <li>Member 3</li>
-          </ul>
-        </details>
-
-        <details style={{ width: '100%', textAlign: 'center', backgroundColor: 'blue', color: 'white', padding: '10px', marginTop: '10px' }}>
-          <summary style={{ cursor: 'pointer', fontSize: '1.5em' }}>Team 2</summary>
-          <ul style={{ listStyleType: 'none', padding: 0, margin: '10px 0' }}>
-            <li>Member 1</li>
-            <li>Member 2</li>
-            <li>Member 3</li>
-          </ul>
-        </details>
-
         <ul>
           {Array.from(coordinatesMap.entries()).map(([buildingId, coord], index) => (
             <li key={index}>
-              Building {buildingId} - Lat: {coord.lat}, Lng: {coord.lng}, 
-              Color: {colorsMap.get(buildingId) ? rgbToHex(colorsMap.get(buildingId)!) : 'Black'},
-              Name: {namesMap.get(buildingId) || 'Unnamed'},
-              Teams: {JSON.stringify(teamsMap.get(buildingId) || {})}
+              <div>Building {buildingId}</div>
+              <div>Lat: {coord.lat}, Lng: {coord.lng}</div>
+              <div>Color: {colorsMap.get(buildingId) ? rgbToHex(colorsMap.get(buildingId)!) : 'Black'}</div>
+              <div>Name: {namesMap.get(buildingId) || 'Unnamed'}</div>
+              <div>Teams: {JSON.stringify(teamsMap.get(buildingId) || {})}</div>
+              <div>Users: {JSON.stringify(usersMap.get(buildingId) || {})}</div>
             </li>
           ))}
         </ul>
