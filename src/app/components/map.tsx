@@ -14,8 +14,8 @@ const Map = ({ latitude = 30.286, longitude = -97.7394, zoom = 14, coordinates =
     if (map.current) return;
 
     const bounds = [
-      [-97.7467, 30.2815],
-      [-97.7315, 30.2910]
+      [-97.7467 - 0.0145, 30.2815 - 0.0050], // Northwest bound moved 1 mile further left and down
+      [-97.7315 + 0.0145, 30.2910 + 0.0090]  // Southeast bound moved 1 mile further right and up
     ];
 
     map.current = new mapboxgl.Map({
