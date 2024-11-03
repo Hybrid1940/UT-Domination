@@ -32,6 +32,8 @@ export default function Home() {
   const clientRef = useRef<MqttClient | null>(null);
   const [coordinatesMap, setCoordinatesMap] = useState(new Map<string, Coordinate>());
   const [colorsMap, setColorsMap] = useState(new Map<string, Color>());
+  const [scoreMap, setScoreMap] = useState(new Map<string, number>());
+
   const [namesMap, setNamesMap] = useState(new Map<string, string | null>());
   const [teamsMap, setTeamsMap] = useState(new Map<string, Teams>());
   const [usersMap, setUsersMap] = useState(new Map<string, Users>()); // New map for users
@@ -57,6 +59,18 @@ export default function Home() {
 
       clientRef.current.on('message', (topic: string, message: Buffer) => {
         console.log("Received topic:", topic, "raw message:", message.toString());
+        if (topic ==='dom/bldg/teams') {
+          try {
+            const data = JSON.parse(message.toString());
+           // if (Array.isArray(data) && data.length === 2 &&
+            //    typeof data[0] === 'number' && typeof data[1] === 'number') {
+              //const [red, blue] = data;
+              setScoreMap(_ => data);
+          //  }
+          } catch (error) {
+            console.error("Error parsing coordinate data:", error, "Raw message:", message.toString());
+          }
+        }
         const buildingId = topic.split('/')[2];
 
         if (topic.endsWith('/coord')) {
@@ -250,7 +264,7 @@ export default function Home() {
             {showModal ? "Close Camera" : "Open Camera"}
           </button>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '50px' }}>
           <div style={{
             width: '45%',
             marginRight: '40px',
@@ -262,20 +276,20 @@ export default function Home() {
             borderRadius: '8px',
             marginTop: '20px',
           }}>
+             Blue Team
             <h2 style={{
               fontSize: '2em',
               fontWeight: 'bold',
               margin: '0',
             }}>
-              Team 1 - Score: 150
+              {scoreMap["Blue"]}
             </h2>
             <p style={{
               fontSize: '1.25em',
               margin: '0',
               opacity: '0.95',
             }}>
-              Member 1: 80 points<br />
-              Member 2: 70 points
+         
             </p>
           </div>
           <div style={{
@@ -288,20 +302,20 @@ export default function Home() {
             borderRadius: '8px',
             marginTop: '20px',
           }}>
+             Red Team
             <h2 style={{
               fontSize: '2em',
               fontWeight: 'bold',
               margin: '0',
             }}>
-              Team 1 - Score: 150
+                {scoreMap["Red"]}
             </h2>
             <p style={{
               fontSize: '1.25em',
               margin: '0',
               opacity: '0.95',
             }}>
-              Member 1: 80 points<br />
-              Member 2: 70 points
+           
             </p>
           </div>
 
@@ -430,7 +444,7 @@ export default function Home() {
         )}
 
 
-        <ul>
+  {/* <ul>
           {Array.from(coordinatesMap.entries()).map(([buildingId, coord], index) => (
             <li key={index}>
               <div>Building {buildingId}</div>
@@ -441,7 +455,7 @@ export default function Home() {
               <div>Users: {JSON.stringify(usersMap.get(buildingId) || {})}</div>
             </li>
           ))}
-        </ul>
+        </ul> */}
       </main>
     </div>
   );
