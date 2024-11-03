@@ -23,7 +23,7 @@ For the frontend, we utilized nextJS and mapbox (https://www.mapbox.com/) for ou
 
 ## Backend
 
-The backend is ran on 
+The backend is ran on MQTT on multiple nodes such as the LED node, game server node, and the mapquest node. All of them run on a Raspberry Pi
 
 
 ## 3D Printing
