@@ -13,7 +13,7 @@ import json
 
 
 DEBUG = True
-p = neopixel.NeoPixel(board.D18, 100, auto_write=False)
+p = neopixel.NeoPixel(board.D18, 120, auto_write=False)
 
 # to only take latest quickly (and be idempotent if unplugged), we'll loop seperately
 lock = threading.Lock()
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         lasttime = time.time()
         with lock:
             for k,v in current_state.items():
-                p[k] = (min(0x20,v[0]), min(0x20,v[1]), min(0x20,v[2]))
+                p[k + 1] = (min(0x20,v[1]), min(0x20,v[0]), min(0x20,v[2]))
             p.show()
         time.sleep((1/30) - (time.time() - lasttime)) # run loop at 30Hz
     mqttc.loop_stop()
