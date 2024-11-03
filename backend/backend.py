@@ -27,7 +27,13 @@ teams = [
 def compute_team_score(client : MqttClient):
     bldg = {}
     total = {"Red": 0, "Blue" : 0}
-    for id, userscores in user_data["bldg"].items():
+    for id, _ in enumerate(all_coords):
+        userscores = user_data["bldg"].get(str(id), None)
+        print(id, userscores, user_data["bldg"])
+        if userscores is None:
+            color = [0,255,0]
+            client.publish(f"dom/bldg/{id}/color", json.dumps(color), retain=True)
+            continue
         bldg[id] = {"Red": 0,"Blue": 0}
         for username, score in userscores.items():
             teamnum = "Red" if username in teams[0] else "Blue" if username in teams[1] else 99
@@ -42,7 +48,7 @@ def compute_team_score(client : MqttClient):
             color = [0,0,255]
             total["Blue"]+=1
         else:
-            color = [255,0,255]
+            color = [0,255,0]
             total["Red"] += .5
             total["Blue"] += .5
         client.publish(f"dom/bldg/{id}/color", json.dumps(color), retain=True)

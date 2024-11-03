@@ -1,0 +1,11 @@
+[Unit]
+Description=[Service description]
+
+[Service]
+Type=simple
+WorkingDirectory=~
+ExecStart=/home/pi/UT-Domination/backend/.venv/bin/python -u /home/pi/UT-Domination/backend/led_mqtt.py
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
